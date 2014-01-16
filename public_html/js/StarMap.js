@@ -10,6 +10,7 @@ var StarMap = {
         StarMap.oContext.font="30px Arial white";
         StarMap.oContext.fillStyle = 'white';
         StarMap.oStarPic.src = 'img/star.png';
+        StarMap.oStarPic.className = 'star-pic';
     },
     
     handleGenerate: function() {
@@ -79,6 +80,7 @@ StarMap.Galaxy = {
 		StarMap.oContext.clearRect(0, 0, StarMap.oCanvas.width, StarMap.oCanvas.height);
 		StarMap.Galaxy.aConnectionPipeline = [];
 		StarMap.Galaxy.aStars = [];
+        $('.star-pic').remove();
 	},
 
 	fnMakeStars: function() {
@@ -157,7 +159,11 @@ StarMap.Star = function(iIndex){
 	this.aPlanets = [];
 	this.aLinkedStars = [];  
 	this.bActivePipeline = false;
-	StarMap.oContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
+	this.oStarPic = StarMap.oStarPic.cloneNode();
+	this.oStarPic.style.left = (this.iX+20)+'px';
+	this.oStarPic.style.top = (this.iY+20)+'px';
+	document.getElementById('galaxy-container').appendChild(this.oStarPic);
+	//StarMap.oContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
 	StarMap.oContext.fillText(this.iIndex,this.iX+5,this.iY+5);
 
 	this.fnLinkToStar = function(oStar) {
@@ -191,4 +197,15 @@ StarMap.Star = function(iIndex){
 		}
 		this.bActivePipeline = false;
 	};    
+};
+
+
+StarMap.SolarSystem = {
+    
+    
+};
+
+StarMap.Planet = function(){
+    
+    
 };

@@ -24,10 +24,14 @@
             <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
         <![endif]-->
 
-        
-        <canvas id="galaxy" width="800" height="600"></canvas><br>
-        <input type="text" id="star-count" value="10">
-        <button onclick="javascript:StarMap.handleGenerate();">Generate</button>
+        <div id="galaxy-container">
+            <canvas id="galaxy" width="800" height="600"></canvas><br>
+            <input type="text" id="star-count" value="10">
+            <button onclick="javascript:StarMap.handleGenerate();">Generate</button>
+        </div>
+        <div id="planets-container">
+            <canvas id="planets" width="300" height="200"></canvas>
+        </div>
 
         <script src="js/vendor/jquery-1.8.0.min.js"></script>
         <script src="js/plugins.js"></script>

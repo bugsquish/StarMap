@@ -6,7 +6,23 @@
         Purpose of the stylesheet follows.
 */
 
+#galaxy-container, #planets-container {
+    float: left;
+    margin: 25px;
+}
 
 #galaxy {
     background: black; /*url('../img/stars1.jpg') center center;*/
+}
+
+#planets-container {
+}
+
+#planets {
+    background: black; /*url('../img/stars1.jpg') center center;*/
+}
+
+.star-pic {
+    position: absolute;
+    cursor: pointer;
 }
