@@ -7,8 +7,9 @@ var StarMap = {
     bInitialised: false,
     
     fnInit: function() {
-        StarMap.oContext.font="30px Arial white";
+        StarMap.oContext.font="18px Arial white";
         StarMap.oContext.fillStyle = 'white';
+		StarMap.oContext.strokeStyle = '#333';
         StarMap.oStarPic.src = 'img/star.png';
         StarMap.oStarPic.className = 'star-pic';
     },
@@ -27,8 +28,11 @@ var StarMap = {
 }
     
 StarMap.Util = {
-	fnGenerateRandomNumber: function(iPadding, iExtent) {
+	fnGenerateRandomCoordinate: function(iPadding, iExtent) {
 		return iPadding + (Math.random() * (iExtent - (iPadding*2)));
+	},
+	fnGenerateRandomInt: function(iMin, iMax) {
+		return Math.floor(Math.random() * (iMax - iMin + 1)) + iMax;
 	},
 	fnGetDistance: function(iX1, iX2, iY1, iY2) {
 		return Math.sqrt(((iX1-iX2)*(iX1-iX2))+((iY1-iY2)*(iY1-iY2)));
@@ -116,7 +120,7 @@ StarMap.Galaxy = {
 	},
 
 	fnConnectStars: function(oStar, bFirst) {
-		var iBranches = Math.random() > 0.7 && !bFirst ? 2 : 1;
+		var nRandom = Math.random(), iBranches = nRandom > 0.9 && !bFirst ? 3 : nRandom > 0.7 && !bFirst ? 2 : 1;
 		for (var l=0; l<iBranches; l++) {
 			oStar.fnLinkToClosestStar(true, bFirst);
 		}        
@@ -132,20 +136,25 @@ StarMap.Galaxy = {
 		return StarMap.Util.fnTestLineIntersect(oStar1.iX,oStar1.iY,oStar2.iX,oStar2.iY,oStar3.iX,oStar3.iY,oStar4.iX,oStar4.iY);
 	},
 	
-	fnTestLineCollisions: function(oStar1, oStar2) {
+	fnTestLineCollisionsByIndex: function(iStar1, iStar2) {
+		var aStars = StarMap.Galaxy.aStars;
+		return StarMap.Galaxy.fnTestLineCollisionsByObject(aStars[iStar1],aStars[iStar2]);
+	},
+	
+	fnTestLineCollisionsByObject: function(oStar1, oStar2) {
 		var bColliding = false, aStars = StarMap.Galaxy.aStars, hTested = {};
 		for (var s=0, sl= aStars.length; s<sl; s++) {
-			for (var l=0, ls = aStars[s].aLinkedStars.length; l<ls; l++) {
-				if (aStars[s].aLinkedStars[l]!=oStar1.iIndex&&aStars[s].aLinkedStars[l]!=oStar2.iIndex
-					&&!hTested[s+'-'+aStars[s].aLinkedStars[l]]&&!hTested[aStars[s].aLinkedStars[l]+'-'+s]) {
-					console.log(aStars[s].iIndex,aStars[s].aLinkedStars[l],oStar1.iIndex,aStars[s].aLinkedStars[l],oStar2.iIndex, oStar1, oStar2, aStars[s], aStars[aStars[s].aLinkedStars[l]], StarMap.Galaxy.fnTestStarIntersectByObject(oStar1, oStar2, aStars[s], aStars[aStars[s].aLinkedStars[l]]));
-					if (StarMap.Galaxy.fnTestStarIntersectByObject(oStar1, oStar2, aStars[s], aStars[aStars[s].aLinkedStars[l]])) {
-						bColliding = true;
+			if (s != oStar1.iIndex && s != oStar2.iIndex) {
+				for (var l=0, ls = aStars[s].aLinkedStars.length; l<ls; l++) {
+					if (aStars[s].aLinkedStars[l]!=oStar1.iIndex&&aStars[s].aLinkedStars[l]!=oStar2.iIndex
+						&&!hTested[s+'-'+aStars[s].aLinkedStars[l]]&&!hTested[aStars[s].aLinkedStars[l]+'-'+s]) {
+						if (StarMap.Galaxy.fnTestStarIntersectByObject(oStar1, oStar2, aStars[s], aStars[aStars[s].aLinkedStars[l]])) {
+							bColliding = true;
+						}
+						hTested[s+'-'+aStars[s].aLinkedStars[l]] = true;
 					}
-					hTested[s+'-'+aStars[s].aLinkedStars[l]] = true;
 				}
 			}
-			
 		}
 		return bColliding;
 	}
@@ -154,8 +163,8 @@ StarMap.Galaxy = {
 StarMap.Star = function(iIndex){
 	this.iIndex = iIndex;
 	this.sName = 'XYZ';
-	this.iX = StarMap.Util.fnGenerateRandomNumber(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.width);
-	this.iY = StarMap.Util.fnGenerateRandomNumber(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.height);
+	this.iX = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.width);
+	this.iY = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.height);
 	this.aPlanets = [];
 	this.aLinkedStars = [];  
 	this.bActivePipeline = false;
@@ -164,48 +173,62 @@ StarMap.Star = function(iIndex){
 	this.oStarPic.style.top = (this.iY+20)+'px';
 	document.getElementById('galaxy-container').appendChild(this.oStarPic);
 	//StarMap.oContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
-	StarMap.oContext.fillText(this.iIndex,this.iX+5,this.iY+5);
+	//StarMap.oContext.fillText(this.iIndex,this.iX+5,this.iY+5);
+
+	this.fnGeneratePlanets = function() {
+		var iPlanetCount = StarMap.Util.fnGenerateRandomInt(2,5);
+		for (var p=0; p<iPlanetCount; p++) {
+			this.aPlanets.push(new StarMap.Planet(this.aPlanets.length));
+		}
+	},
 
 	this.fnLinkToStar = function(oStar) {
 		StarMap.oContext.beginPath();
 		StarMap.oContext.moveTo(this.iX,this.iY);
 		StarMap.oContext.lineTo(oStar.iX,oStar.iY);
-		StarMap.oContext.strokeStyle = '#ff0000';
 		StarMap.iLinkedCount++;
 		StarMap.oContext.stroke();
 		this.aLinkedStars.push(oStar.iIndex);
 		oStar.aLinkedStars.push(this.iIndex);
 	};
+	
+	this.fnFindBestStar = function() {
+		
+	}
 
 	this.fnLinkToClosestStar = function(bPipeline, bFirst) {
 		var oClosestStar = StarMap.Galaxy.fnFindClosestStarToPoint(this.iX,this.iY,bPipeline);
 		StarMap.Galaxy.oConnectingStar = this;
-		if (bPipeline) {
-			var aConnectionPipeline = StarMap.Galaxy.aConnectionPipeline;
-			var oClosestPipelineStarToTarget = StarMap.Galaxy.fnFindClosestStarToPoint(oClosestStar.iX,oClosestStar.iY,false,this);
-			console.log(this);
-			console.log(oClosestStar);
-			console.log(oClosestPipelineStarToTarget);
-			console.log('-');
-			//if (!StarMap.Galaxy.fnTestStarIntersectByIndex(9,7,7,2)) {
-				StarMap.Galaxy.aConnectionPipeline.push(oClosestStar);
-				oClosestStar.bActivePipeline = true;
-				this.fnLinkToStar(oClosestStar)
-			//} 
-		} else {
-			this.fnLinkToStar(oClosestStar);
+		if (oClosestStar) {
+			if (bPipeline) {
+				if (!StarMap.Galaxy.fnTestLineCollisionsByObject(this,oClosestStar)) {
+					StarMap.Galaxy.aConnectionPipeline.push(oClosestStar);
+					this.fnLinkToStar(oClosestStar)
+					oClosestStar.bActivePipeline = true;
+				} 
+			} else {
+				this.fnLinkToStar(oClosestStar);
+			}
 		}
 		this.bActivePipeline = false;
 	};    
+	
+	this.handleClick = function() {
+		StarMap.SolarSystem.fnShowPlanets(this);
+	}
 };
 
 
 StarMap.SolarSystem = {
     
-    
+    fnShowPlanets: function(oStar) {
+		
+	}
 };
 
-StarMap.Planet = function(){
-    
-    
+StarMap.Planet = function(iIndex){
+	this.iIndex = iIndex;
+    this.iSize = StarMap.Util.fnGenerateRandomInt(1,5);
+    this.iSpeed = StarMap.Util.fnGenerateRandomInt(2,5);
+    this.iPosition = StarMap.Util.fnGenerateRandomInt(0,365);
 };
