@@ -1,17 +1,20 @@
 var StarMap = {
     
     iLinkedCount: 1,
-    oCanvas: document.getElementById('galaxy'),
-    oContext: document.getElementById('galaxy').getContext('2d'),
+    oGalaxyCanvas: document.getElementById('galaxy'),
+    oPlanetsCanvas: document.getElementById('planets'),
     oStarPic: new Image(),
+    oPlanetPic: new Image(),
     bInitialised: false,
     
     fnInit: function() {
-        StarMap.oContext.font="18px Arial white";
-        StarMap.oContext.fillStyle = 'white';
-		StarMap.oContext.strokeStyle = '#333';
+        StarMap.oGalaxyContext.font="18px Arial white";
+        StarMap.oGalaxyContext.fillStyle = 'white';
+		StarMap.oGalaxyContext.strokeStyle = '#333';
         StarMap.oStarPic.src = 'img/star.png';
         StarMap.oStarPic.className = 'star-pic';
+        StarMap.oPlanetPic.src = 'img/planet.png';
+        StarMap.oPlanetPic.className = 'planet-pic';
     },
     
     handleGenerate: function() {
@@ -67,7 +70,10 @@ StarMap.Util = {
 		return true;
 	}
 }
-            
+
+
+StarMap.oGalaxyContext = StarMap.oGalaxyCanvas.getContext('2d');
+			
 StarMap.Galaxy = {
 	iStarCount: 200,
 	iGalaxyBorder: 50,
@@ -81,7 +87,7 @@ StarMap.Galaxy = {
 	},
 
 	fnResetGalaxy: function() {
-		StarMap.oContext.clearRect(0, 0, StarMap.oCanvas.width, StarMap.oCanvas.height);
+		StarMap.oGalaxyContext.clearRect(0, 0, StarMap.oGalaxyCanvas.width, StarMap.oGalaxyCanvas.height);
 		StarMap.Galaxy.aConnectionPipeline = [];
 		StarMap.Galaxy.aStars = [];
         $('.star-pic').remove();
@@ -163,17 +169,20 @@ StarMap.Galaxy = {
 StarMap.Star = function(iIndex){
 	this.iIndex = iIndex;
 	this.sName = 'XYZ';
-	this.iX = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.width);
-	this.iY = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oCanvas.height);
+	this.iX = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oGalaxyCanvas.width);
+	this.iY = StarMap.Util.fnGenerateRandomCoordinate(StarMap.Galaxy.iGalaxyBorder, StarMap.oGalaxyCanvas.height);
 	this.aPlanets = [];
 	this.aLinkedStars = [];  
 	this.bActivePipeline = false;
 	this.oStarPic = StarMap.oStarPic.cloneNode();
-	this.oStarPic.style.left = (this.iX+20)+'px';
-	this.oStarPic.style.top = (this.iY+20)+'px';
+	this.oStarPic.style.left = (this.iX-5)+'px';
+	this.oStarPic.style.top = (this.iY-5)+'px';
 	document.getElementById('galaxy-container').appendChild(this.oStarPic);
-	//StarMap.oContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
-	//StarMap.oContext.fillText(this.iIndex,this.iX+5,this.iY+5);
+	//StarMap.oGalaxyContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
+	//StarMap.oGalaxyContext.fillText(this.iIndex,this.iX+5,this.iY+5);
+	$(this.oStarPic).click(function() {
+		StarMap.SolarSystem.fnShowPlanets(this);
+	});
 
 	this.fnGeneratePlanets = function() {
 		var iPlanetCount = StarMap.Util.fnGenerateRandomInt(2,5);
@@ -183,11 +192,11 @@ StarMap.Star = function(iIndex){
 	},
 
 	this.fnLinkToStar = function(oStar) {
-		StarMap.oContext.beginPath();
-		StarMap.oContext.moveTo(this.iX,this.iY);
-		StarMap.oContext.lineTo(oStar.iX,oStar.iY);
+		StarMap.oGalaxyContext.beginPath();
+		StarMap.oGalaxyContext.moveTo(this.iX,this.iY);
+		StarMap.oGalaxyContext.lineTo(oStar.iX,oStar.iY);
 		StarMap.iLinkedCount++;
-		StarMap.oContext.stroke();
+		StarMap.oGalaxyContext.stroke();
 		this.aLinkedStars.push(oStar.iIndex);
 		oStar.aLinkedStars.push(this.iIndex);
 	};
@@ -214,15 +223,19 @@ StarMap.Star = function(iIndex){
 	};    
 	
 	this.handleClick = function() {
-		StarMap.SolarSystem.fnShowPlanets(this);
+		
 	}
 };
 
+StarMap.oPlanetsContext = StarMap.oPlanetsCanvas.getContext('2d');
 
 StarMap.SolarSystem = {
-    
+    aCentralCoOrds: [StarMap.oPlanetsCanvas.width/2,StarMap.oPlanetsCanvas.height/2],
     fnShowPlanets: function(oStar) {
-		
+		this.oStarPic = StarMap.oStarPic.cloneNode();
+		this.oStarPic.style.left = (this.aCentralCoOrds[0])+'px';
+		this.oStarPic.style.top = (this.aCentralCoOrds[1])+'px';
+		document.getElementById('planets-container').appendChild(this.oStarPic);
 	}
 };
 

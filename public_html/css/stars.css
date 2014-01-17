@@ -8,7 +8,8 @@
 
 #galaxy-container, #planets-container {
     float: left;
-    margin: 25px;
+    margin: 25px 0 0 25px;
+	position: relative;
 }
 
 #galaxy {
