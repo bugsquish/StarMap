@@ -23,7 +23,7 @@
     background: black; /*url('../img/stars1.jpg') center center;*/
 }
 
-.star-pic {
+.star-pic, .planet-pic {
     position: absolute;
     cursor: pointer;
 }

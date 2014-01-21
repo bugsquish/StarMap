@@ -8,9 +8,13 @@ var StarMap = {
     bInitialised: false,
     
     fnInit: function() {
+		StarMap.oGalaxyContext = StarMap.oGalaxyCanvas.getContext('2d');
         StarMap.oGalaxyContext.font="18px Arial white";
         StarMap.oGalaxyContext.fillStyle = 'white';
 		StarMap.oGalaxyContext.strokeStyle = '#333';
+		StarMap.oPlanetsContext = StarMap.oPlanetsCanvas.getContext('2d');
+        StarMap.oPlanetsContext.fillStyle = 'white';
+		StarMap.oPlanetsContext.strokeStyle = '#333';
         StarMap.oStarPic.src = 'img/star.png';
         StarMap.oStarPic.className = 'star-pic';
         StarMap.oPlanetPic.src = 'img/planet.png';
@@ -35,7 +39,7 @@ StarMap.Util = {
 		return iPadding + (Math.random() * (iExtent - (iPadding*2)));
 	},
 	fnGenerateRandomInt: function(iMin, iMax) {
-		return Math.floor(Math.random() * (iMax - iMin + 1)) + iMax;
+		return iMin + Math.floor(Math.random() * (iMax - iMin + 1));
 	},
 	fnGetDistance: function(iX1, iX2, iY1, iY2) {
 		return Math.sqrt(((iX1-iX2)*(iX1-iX2))+((iY1-iY2)*(iY1-iY2)));
@@ -72,7 +76,7 @@ StarMap.Util = {
 }
 
 
-StarMap.oGalaxyContext = StarMap.oGalaxyCanvas.getContext('2d');
+
 			
 StarMap.Galaxy = {
 	iStarCount: 200,
@@ -165,7 +169,7 @@ StarMap.Galaxy = {
 		return bColliding;
 	}
 }
-            
+          
 StarMap.Star = function(iIndex){
 	this.iIndex = iIndex;
 	this.sName = 'XYZ';
@@ -177,17 +181,20 @@ StarMap.Star = function(iIndex){
 	this.oStarPic = StarMap.oStarPic.cloneNode();
 	this.oStarPic.style.left = (this.iX-5)+'px';
 	this.oStarPic.style.top = (this.iY-5)+'px';
+	this.iPlanetBuffer = StarMap.Util.fnGenerateRandomInt(30,60);
 	document.getElementById('galaxy-container').appendChild(this.oStarPic);
+	var oThis = this;
 	//StarMap.oGalaxyContext.drawImage(StarMap.oStarPic, this.iX-5, this.iY-5);
 	//StarMap.oGalaxyContext.fillText(this.iIndex,this.iX+5,this.iY+5);
+	
 	$(this.oStarPic).click(function() {
-		StarMap.SolarSystem.fnShowPlanets(this);
+		oThis.handleClick();
 	});
 
 	this.fnGeneratePlanets = function() {
-		var iPlanetCount = StarMap.Util.fnGenerateRandomInt(2,5);
+		var iPlanetCount = StarMap.Util.fnGenerateRandomInt(1,7);
 		for (var p=0; p<iPlanetCount; p++) {
-			this.aPlanets.push(new StarMap.Planet(this.aPlanets.length));
+			this.aPlanets.push(new StarMap.Planet(this, this.aPlanets.length));
 		}
 	},
 
@@ -223,25 +230,73 @@ StarMap.Star = function(iIndex){
 	};    
 	
 	this.handleClick = function() {
-		
+		if (!oThis.aPlanets.length) {
+			oThis.fnGeneratePlanets();
+		}
+		StarMap.SolarSystem.fnShowPlanets(oThis);
 	}
 };
 
-StarMap.oPlanetsContext = StarMap.oPlanetsCanvas.getContext('2d');
 
 StarMap.SolarSystem = {
-    aCentralCoOrds: [StarMap.oPlanetsCanvas.width/2,StarMap.oPlanetsCanvas.height/2],
+    iCenterX: StarMap.oPlanetsCanvas.width/2,
+	iCenterY: StarMap.oPlanetsCanvas.height/2,
+	fnClearPlanets: function() {		
+		StarMap.oPlanetsContext.clearRect(0, 0, StarMap.oPlanetsCanvas.width, StarMap.oPlanetsCanvas.height);
+        $('.planet-pic').remove();
+	},
     fnShowPlanets: function(oStar) {
+		StarMap.SolarSystem.fnClearPlanets();
+		// Sun
 		this.oStarPic = StarMap.oStarPic.cloneNode();
-		this.oStarPic.style.left = (this.aCentralCoOrds[0])+'px';
-		this.oStarPic.style.top = (this.aCentralCoOrds[1])+'px';
+		this.oStarPic.style.left = (this.iCenterX-5)+'px';
+		this.oStarPic.style.top = (this.iCenterY-5)+'px';
 		document.getElementById('planets-container').appendChild(this.oStarPic);
+		// Planets 
+		for (var p=0; p<oStar.aPlanets.length; p++) {
+			var oPlanet = oStar.aPlanets[p];
+			oPlanet.fnCalculatePosition();
+			oPlanet.fnPositionPlanet();
+			document.getElementById('planets-container').appendChild(oPlanet.oPlanetPic);
+			StarMap.oPlanetsContext.beginPath();
+			StarMap.oPlanetsContext.arc(StarMap.SolarSystem.iCenterX, StarMap.SolarSystem.iCenterY, oPlanet.iDistance, 0, 2 * Math.PI, false);
+			StarMap.oPlanetsContext.stroke();
+			oPlanet.bIsVisible = true;
+			oPlanet.fnMoveInterval = window.setInterval(function(oPlanet) {
+				oPlanet.fnUpdatePosition();
+				oPlanet.fnCalculatePosition();
+				if (oPlanet.bIsVisible) {
+					oPlanet.fnPositionPlanet();
+				}
+			}, 100, oPlanet);
+		}
 	}
 };
 
-StarMap.Planet = function(iIndex){
+StarMap.Planet = function(oStar, iIndex){
 	this.iIndex = iIndex;
+    this.iPosition = StarMap.Util.fnGenerateRandomInt(0,365);
+	this.iPositionX = (Math.cos(this.iPosition)*this.iDistance)+StarMap.SolarSystem.iCenterX;
+	this.iPositionY = (Math.sin(this.iPosition)*this.iDistance)+StarMap.SolarSystem.iCenterY;
     this.iSize = StarMap.Util.fnGenerateRandomInt(1,5);
     this.iSpeed = StarMap.Util.fnGenerateRandomInt(2,5);
-    this.iPosition = StarMap.Util.fnGenerateRandomInt(0,365);
+	this.iDistance = iIndex?oStar.iPlanetBuffer + (iIndex*StarMap.Util.fnGenerateRandomInt(15,20)):oStar.aPlanets[iIndex-1]+StarMap.Util.fnGenerateRandomInt(30,50);
+	this.oPlanetPic = StarMap.oPlanetPic.cloneNode();
+	this.bIsVisible = false;
+	
+	
+	this.fnUpdatePosition = function() {
+		this.iPosition+=0.001*this.iSpeed;
+		//this.iPosition = this.iPosition<=360?this.iPosition:0;
+	}
+	
+	this.fnCalculatePosition = function() {
+		this.iPositionX = (Math.cos(this.iPosition)*this.iDistance)+StarMap.SolarSystem.iCenterX-5;
+		this.iPositionY = (Math.sin(this.iPosition)*this.iDistance)+StarMap.SolarSystem.iCenterY-5;
+	}
+	
+	this.fnPositionPlanet = function() {
+		this.oPlanetPic.style.left = this.iPositionX+'px';
+		this.oPlanetPic.style.top = this.iPositionY+'px';
+	}
 };
