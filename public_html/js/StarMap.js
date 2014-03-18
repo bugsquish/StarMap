@@ -114,6 +114,7 @@ StarMap.Galaxy = {
 	aConnectionPipeline: [],
 	fnNewGalaxy: function() {
 		this.iStarCount = document.getElementById('star-count').value;
+		StarMap.SolarSystem.fnClearPlanets();
 		this.fnResetGalaxy();
 		this.fnMakeStars();
 	},
