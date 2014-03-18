@@ -7,4 +7,4 @@ Prototyping as part of a mobile game under development. Generates a random const
 
 This is by no means a finished product and has some known bugs, but is offered as an example of JavaScript coding style. Please note use of namespaces, static objects, as well as constructors with prototype methods and scope management techniques. I have used minimal commentary but sensible naming conventions which is intended to produce code that is largely self-documenting. Nonetheless, a finished version would be commented using full Yuidoc standard.
 
-Main application can be found in StarMap.js
+Main application can be found in public_html/js/StarMap.js
