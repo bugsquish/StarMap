@@ -8,7 +8,7 @@
 
 #galaxy-container, #planets-container {
     float: left;
-    margin: 25px 0 0 25px;
+    margin: 5px 0 0 25px;
 	position: relative;
 }
 
@@ -26,4 +26,24 @@
 .star-pic, .planet-pic {
     position: absolute;
     cursor: pointer;
+}
+
+#tooltip {
+    position: absolute;
+	color: white;
+	font-weight: bold;
+}
+
+#blurb {
+	width: 450px;
+	font-size: 12px;
+}
+
+
+h1 {
+	text-align: center;
+	font-weight: bold;
+	font-size: 13px;
+	padding: 0;
+	margin: 5px;
 }
